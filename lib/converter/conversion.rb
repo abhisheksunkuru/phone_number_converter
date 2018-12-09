@@ -24,18 +24,24 @@ module Converter
     end
 
     def self.number_to_word(number)
-      result = []
+
       possible_combinations = nil
       number.each_char do |digit|
+        codes = NUMBER_HASH[digit.to_i]
+         raise "Invalid symbol '#{digit}' in the phone" if codes.nil?
 
         if possible_combinations
-          possible_combinations = possible_combinations.product(NUMBER_HASH[digit.to_i])
+          possible_combinations = possible_combinations.product(codes)
         else
-          possible_combinations = NUMBER_HASH[digit.to_i]
+
+
+          possible_combinations = codes
         end
       end
 
-      test_words = possible_combinations.map { |e| e.flatten().join}
+
+
+      test_words = possible_combinations.map { |e|  e.flatten().join }
 
       test_words.select! { |w| valid_word?(w) }
 
@@ -43,12 +49,26 @@ module Converter
     end
 
     def self.number_to_words(number)
-      # phone_number  = number.dup
-      # all_words = number_to_word(number)
-      # phone_number.each_char do |char|
-      #   words_list =
+      last_numbers  = number.dup
+      full_phone_words = number_to_word(number)
+      all_words = full_phone_words
+      first_numbers = ''
+      while last_numbers.length >3 do
+        first_numbers += last_numbers.slice!(0)
+        next if first_numbers.length < 3
+        first_words = number_to_word(first_numbers)
+        last_words = number_to_word(last_numbers)
 
-      # ends
+        if first_words.length>0 && last_words.length>0
+          combinations = first_words.product(last_words)
+          all_words += combinations
+        end
+
+        # remove full_phone_words from all_words pairs
+        all_words.select!{|e| !full_phone_words.include?(e[0]+e[1]) }
+
+      end
+      all_words
     end
   end
 end
